@@ -1,0 +1,7 @@
+tests.py
+__pycache__/
+.DS_Store
+.idea/
+FaceDatabase/
+Data/
+VideoData/
