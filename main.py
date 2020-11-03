@@ -13,6 +13,8 @@ IGNORE_FILES = ['.DS_Store']
 shape = (6, 3)
 prep_dataset = True
 
+#TODO: If a person is not detected - a new person - append subject to training matrix
+
 def prep_train_test(train_path, test_path, options: dict):
     init_data_matrix = True
     TrainSet = {}
@@ -189,6 +191,11 @@ def extract_dataset(videos_folder, dest_dataset):
     global prep_dataset
     prep_dataset = False # Data is now prepped for further processing
 
+def last_run_date(): # Stores last run date in file and reads - in order to append new person
+    pass
+
+def run_live_DMD(): # If videos are not sampled first, this
+    pass
 
 def main():
 
@@ -198,8 +205,8 @@ def main():
     dest = os.path.join(os.getcwd(), data_folder)
 
     ### Uncomment for first run ###
-    #if prep_dataset == True:
-    #   extract_dataset(src, dest)
+    if prep_dataset == True:
+     extract_dataset(src, dest)
 
     train_path = os.path.join(dest, 'train') + os.sep
     test_path = os.path.join(dest, 'test') + os.sep
