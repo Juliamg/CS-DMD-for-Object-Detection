@@ -9,7 +9,7 @@ import seaborn as sns
 
 # TODO: add some validation threshold, plot the residuals, reject sample image if it crosses the validation threshold -> 0.4 for instance
 
-def src_algorithm(TrainSet, TestSet, num_classes, num_test_samples, sigma):
+def src_algorithm(TrainSet, TestSet, num_classes, num_test_samples, sigma, thresh_certainty):
     classes = np.unique(TrainSet['y']) # which classes have been acquainted
     identity = []
     failed_imgs = []
@@ -35,22 +35,33 @@ def src_algorithm(TrainSet, TestSet, num_classes, num_test_samples, sigma):
         for j in range(num_classes):
             idx = np.where(classes[j] == TrainSet['y'])
             last_index = np.size(idx) - 1
-            #print(idx, y.shape, TrainSet['X'][:,idx[0][0]:idx[0][last_index]+1].shape, xp[idx].shape)
             residuals[j] = np.linalg.norm(y - TrainSet['X'][:,idx[0][0]:idx[0][last_index]+1].dot(xp[idx]))
 
+        min_res = np.min(residuals)
+
+        mean_res = np.mean(residuals)
+        certainty = 1-min_res/mean_res
+
         label_index = np.argmin(residuals)
-        identity.append(classes[label_index])
 
-        print("PREDICTED: ", classes[label_index], "TRUE: ", TestSet['y'][i])
-        if classes[label_index] != TestSet['y'][i]:
+        if classes[label_index] != TestSet['y'][i] or thresh_certainty > certainty:
             failed_imgs.append(TestSet['files'][i])
+            identity.append(None)
+        else:
+            print("PREDICTED: ", classes[label_index], "TRUE: ", TestSet['y'][i])
+            identity.append(classes[label_index])
 
-        sns.barplot(x=classes, y=residuals)
+        graph = sns.barplot(x=classes, y=residuals)
         plt.title('Residuals of each class')
+        graph.axhline(thresh_certainty, color='r', label='threshold')
+        graph.axhline(certainty, color='g', label='certainty')
 
         plt.show(block=False)
-        plt.pause(4)
+        plt.legend()
+        plt.pause(5)
         plt.close()
+
+    #TODO: print out some warning of intruder?
 
     ### Calculate accuracy ###
     correct_num = [i for i in range(len(identity)) if identity[i] == TestSet['y'][i]]

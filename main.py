@@ -205,8 +205,8 @@ def main():
     dest = os.path.join(os.getcwd(), data_folder)
 
     ### Uncomment for first run ###
-    if prep_dataset == True:
-     extract_dataset(src, dest)
+    #if prep_dataset == True:
+    # extract_dataset(src, dest)
 
     train_path = os.path.join(dest, 'train') + os.sep
     test_path = os.path.join(dest, 'test') + os.sep
@@ -216,12 +216,18 @@ def main():
 
     TrainSet, TestSet = prep_train_test(train_path, test_path, options)
 
-    print(TrainSet['X'].shape, TrainSet['y'], TestSet['X'].shape, TestSet['y'])
+    print(TestSet['X'].shape, TestSet['y'].shape)
 
     num_classes = len(set(TrainSet['y']))
     num_test_samples = len(list(TestSet['y']))
     sigma = 0.0001
-    accuracy, failed = src_algorithm(TrainSet, TestSet, num_classes, num_test_samples, sigma)
+    thresh_certainty = 0.3 # Threshold for how "certain" the src algorithm should be when predicting the class.
+                           # Certainty in the prediction that falls below this threshold is discarded
+                           # Increasing this value will lead to stricter predictions. Put zero for no threshold
+
+    #residual_tolerance = 0.3 # how large the residual for the true class can maximum be
+
+    accuracy, failed = src_algorithm(TrainSet, TestSet, num_classes, num_test_samples, sigma, thresh_certainty)
     for f in failed:
         print(f)
 
