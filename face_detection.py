@@ -32,10 +32,6 @@ def process_DMD_snapshots(data_path): # Path to train folder residing in Data fo
             # Check if faces contain a face
             for (x,y,w,h) in faces:
                 face_count += 1
-                ### Show detected faces ###
-                # img = cv2.rectangle(img,(x,y),(x+w+padding,y+h+padding),(255,0,0),2)
-                # cv2.imshow("img", img)
-                # cv2.waitKey(500)
 
                 ### Crop face and create new image ###
                 crop_img = img[y:y+h+padding, x:x+w+padding]
@@ -43,5 +39,4 @@ def process_DMD_snapshots(data_path): # Path to train folder residing in Data fo
                 cv2.imwrite(img_path, resized_img)
                 break # First detected face is probably the correct one
 
-            #cv2.destroyAllWindows()
         print(f"Detected {face_count} faces for subject {folder}")

@@ -2,6 +2,7 @@ import numpy as np
 import os
 import cv2
 import random
+import argparse
 
 from sklearn.decomposition import PCA
 from skimage.color import rgb2gray
@@ -13,7 +14,7 @@ IGNORE_FILES = ['.DS_Store']
 shape = (6, 3)
 prep_dataset = True
 
-#TODO: If a person is not detected - a new person - append subject to training matrix
+#random.seed(1234)
 
 def prep_train_test(train_path, test_path, options: dict):
     init_data_matrix = True
@@ -166,58 +167,86 @@ def split_train_test(data_folder):
             if l > 5:
                 if int(len(os.listdir(subject_path)) * 0.3) % i == 0:
                     k = random.choice(os.listdir(os.path.join(train_path, dir)))
-                    print(f"Sample chosen from {dir}, is {k}, num files: {l}")
-                    print(os.path.join(train_path, dir, k), os.path.join(test_path, dir, k))
+                    #print(f"Sample chosen from {dir}, is {k}, num files: {l}")
+                    #print(os.path.join(train_path, dir, k), os.path.join(test_path, dir, k))
                     os.rename(os.path.join(train_path, dir, k),
                               os.path.join(test_path, dir, k))
 
             elif l <= 5:
                 if i == 1: ## Sample a single test file (should optimally have more training data than this, so one test sample is sufficient)
                     k = random.choice(os.listdir(os.path.join(train_path, dir)))
-                    print(f"Sample chosen from {dir}, is {k}, num files: {l}")
-                    print(os.path.join(train_path, dir, k), os.path.join(test_path, dir, k))
+                    #print(f"Sample chosen from {dir}, is {k}, num files: {l}")
+                    #print(os.path.join(train_path, dir, k), os.path.join(test_path, dir, k))
 
                     os.rename(os.path.join(train_path, dir, k),
                               os.path.join(test_path, dir, k))
 
-def extract_dataset(videos_folder, dest_dataset):
-    train_path = parse_videos(videos_folder, dest_dataset)
-    process_DMD_snapshots(train_path) # Absolute path to where data resides
+def run_extract_pipeline(videos_folder, dest_folder, train: bool):
+    print("Running DMD and Face Detection on input videos")
 
-    breakpoint()
-    ### Split train to test dataset ###
-    split_train_test(dest_dataset) # Takes input root folder
+    if train:
+        data_path = parse_videos(videos_folder, dest_folder, train_folder=True)
+        process_DMD_snapshots(data_path) # Absolute path to where data resides
 
-    global prep_dataset
-    prep_dataset = False # Data is now prepped for further processing
+        breakpoint()
+        ### Split train to test dataset ###
+        split_train_test(dest_folder)  # Takes input root folder
 
-def last_run_date(): # Stores last run date in file and reads - in order to append new person
-    pass
+    else:
+        data_path = parse_videos(videos_folder, dest_folder, train_folder=False) # To test existing database of faces against a recorded video
+        process_DMD_snapshots(data_path)                                          # that was not in training
 
-def run_live_DMD(): # If videos are not sampled first, this
-    pass
+    return data_path
 
-def main():
+def get_parser():
+    parser = argparse.ArgumentParser(description='Specify how you want to run the Object Detection pipeline.')
+    parser.add_argument('--train', type=str, required=True, help='Enter y/n for running full pipeline, creating training and test set from folder')
+    parser.add_argument('--extract_new', type=str, required=True, help='Enter y/n to run full pipeline on new data against trained model')
+    parser.add_argument('--run_new', type=str, required=True, help='Enter y/n for running only src on extracted new dataset, (n) for trained dataset')
+    parser.add_argument('--video_folder', required=True, type=str, help='Name of video folder located in project root folder')
 
-    videos_folder = 'VideoData'
-    data_folder = 'Data'
-    src = os.path.join(os.getcwd(), videos_folder)
+    return parser
+
+def main(args=None):
+
+    """
+
+    Main entrypoint
+
+    """
+
+    parser = get_parser()
+    args = parser.parse_args(args)
+
+    data_folder = 'Data' # This must exist in project root folder - all processed data is sent here
+    video_folder = args.video_folder
+    src = os.path.join(os.getcwd(), video_folder)
     dest = os.path.join(os.getcwd(), data_folder)
 
-    ### Uncomment for first run ###
-    #if prep_dataset == True:
-    # extract_dataset(src, dest)
+    if args.train == 'y':
+        train_path = run_extract_pipeline(src, dest, train=True) + os.sep
+        test_path = os.path.join(dest, 'test') + os.sep
 
-    train_path = os.path.join(dest, 'train') + os.sep
-    test_path = os.path.join(dest, 'test') + os.sep
+    if args.extract_new == 'y':
+        dest = dest + os.sep + 'NewVideos' # dedicated folder for new incoming videos to be tested on existing training data
+        test_path = run_extract_pipeline(src, dest, train=False)
+        train_path = os.path.join(dest, 'train') + os.sep
 
-    #options = {'feature_selection': 'downsampling', 'dims': shape} # feature selection can be wither pca (eigenfaces) or downsampling
-    options = {'feature_selection': 'pca', 'dims': 25}
+    if args.train == 'n' and args.extract_new == 'n' and args.run_new == 'y':
+        train_path = os.path.join(dest, 'train') + os.sep
+        test_path = os.path.join(os.getcwd(), 'Data/NewVideos') + os.sep
+
+    elif args.train == 'n' and args.extract_new == 'n' and args.run_new == 'n':
+        train_path = os.path.join(dest, 'train') + os.sep
+        test_path = os.path.join(dest, 'test') + os.sep
+
+    ### Feature selection option ###
+    options = {'feature_selection': 'downsampling', 'dims': shape} # feature selection can be wither pca (eigenfaces) or downsampling
+    #options = {'feature_selection': 'pca', 'dims': 25}
 
     TrainSet, TestSet = prep_train_test(train_path, test_path, options)
 
-    print(TestSet['X'].shape, TestSet['y'].shape)
-
+    ### Parameters for src algorithm ###
     num_classes = len(set(TrainSet['y']))
     num_test_samples = len(list(TestSet['y']))
     sigma = 0.0001
@@ -225,9 +254,10 @@ def main():
                            # Certainty in the prediction that falls below this threshold is discarded
                            # Increasing this value will lead to stricter predictions. Put zero for no threshold
 
-    #residual_tolerance = 0.3 # how large the residual for the true class can maximum be
+    print(f"Running SRC classifier with certainty threshold: {thresh_certainty}, and feature selection: {options['feature_selection']}")
 
     accuracy, failed = src_algorithm(TrainSet, TestSet, num_classes, num_test_samples, sigma, thresh_certainty)
+    print("Failed to classify images: \n")
     for f in failed:
         print(f)
 

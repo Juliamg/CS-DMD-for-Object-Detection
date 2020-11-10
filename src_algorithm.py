@@ -7,8 +7,6 @@ import cvxpy as cvx
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# TODO: add some validation threshold, plot the residuals, reject sample image if it crosses the validation threshold -> 0.4 for instance
-
 def src_algorithm(TrainSet, TestSet, num_classes, num_test_samples, sigma, thresh_certainty):
     classes = np.unique(TrainSet['y']) # which classes have been acquainted
     identity = []
@@ -47,8 +45,9 @@ def src_algorithm(TrainSet, TestSet, num_classes, num_test_samples, sigma, thres
         if classes[label_index] != TestSet['y'][i] or thresh_certainty > certainty:
             failed_imgs.append(TestSet['files'][i])
             identity.append(None)
+            print(f"INTRUDER WARNING - Face not recognized in file {TestSet['files'][i]}!")
         else:
-            print("PREDICTED: ", classes[label_index], "TRUE: ", TestSet['y'][i])
+            print("RECOGNIZED AS: ", classes[label_index], "TRUE: ", TestSet['y'][i])
             identity.append(classes[label_index])
 
         graph = sns.barplot(x=classes, y=residuals)
@@ -60,8 +59,6 @@ def src_algorithm(TrainSet, TestSet, num_classes, num_test_samples, sigma, thres
         plt.legend()
         plt.pause(5)
         plt.close()
-
-    #TODO: print out some warning of intruder?
 
     ### Calculate accuracy ###
     correct_num = [i for i in range(len(identity)) if identity[i] == TestSet['y'][i]]
