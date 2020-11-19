@@ -42,7 +42,8 @@ def src_algorithm(TrainSet, TestSet, num_classes, num_test_samples, sigma, thres
 
         label_index = np.argmin(residuals)
 
-        if classes[label_index] != TestSet['y'][i] or thresh_certainty > certainty:
+        #if classes[label_index] != TestSet['y'][i] or thresh_certainty > certainty:
+        if thresh_certainty > certainty:
             failed_imgs.append(TestSet['files'][i])
             identity.append(None)
             print(f"INTRUDER WARNING - Face not recognized in file {TestSet['files'][i]}!")
@@ -62,7 +63,7 @@ def src_algorithm(TrainSet, TestSet, num_classes, num_test_samples, sigma, thres
 
     ### Calculate accuracy ###
     correct_num = [i for i in range(len(identity)) if identity[i] == TestSet['y'][i]]
-    accuracy = len(correct_num)/num_test_samples * 100
-    print(f"Predicted correctly: {len(correct_num)} out of {np.size(TestSet['y'])} with an accuracy of: {accuracy} %")
+    rec_rate = len(correct_num)/num_test_samples * 100
+    print(f"Predicted correctly: {len(correct_num)} out of {np.size(TestSet['y'])} with recognition rate: {rec_rate} %")
 
-    return accuracy, failed_imgs
+    return rec_rate, failed_imgs

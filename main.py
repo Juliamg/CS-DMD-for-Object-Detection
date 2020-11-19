@@ -11,10 +11,10 @@ from DMD_video_sampling import parse_videos
 from face_detection import process_DMD_snapshots
 
 IGNORE_FILES = ['.DS_Store']
-shape = (6, 3)
+shape = (5, 5)
 prep_dataset = True
 
-#random.seed(1234)
+random.seed(30)
 
 def prep_train_test(train_path, test_path, options: dict):
     init_data_matrix = True
@@ -228,9 +228,9 @@ def main(args=None):
         test_path = os.path.join(dest, 'test') + os.sep
 
     if args.extract_new == 'y':
-        dest = dest + os.sep + 'NewVideos' # dedicated folder for new incoming videos to be tested on existing training data
-        test_path = run_extract_pipeline(src, dest, train=False)
         train_path = os.path.join(dest, 'train') + os.sep
+        dest = dest + os.sep + 'NewVideos' + os.sep # dedicated folder for new incoming videos to be tested on existing training data
+        test_path = run_extract_pipeline(src, dest, train=False)
 
     if args.train == 'n' and args.extract_new == 'n' and args.run_new == 'y':
         train_path = os.path.join(dest, 'train') + os.sep
@@ -241,22 +241,22 @@ def main(args=None):
         test_path = os.path.join(dest, 'test') + os.sep
 
     ### Feature selection option ###
-    options = {'feature_selection': 'downsampling', 'dims': shape} # feature selection can be wither pca (eigenfaces) or downsampling
-    #options = {'feature_selection': 'pca', 'dims': 25}
+    #options = {'feature_selection': 'downsampling', 'dims': shape} # feature selection can be wither pca (eigenfaces) or downsampling
+    options = {'feature_selection': 'pca', 'dims': 18}
 
     TrainSet, TestSet = prep_train_test(train_path, test_path, options)
 
     ### Parameters for src algorithm ###
     num_classes = len(set(TrainSet['y']))
     num_test_samples = len(list(TestSet['y']))
-    sigma = 0.0001
-    thresh_certainty = 0.3 # Threshold for how "certain" the src algorithm should be when predicting the class.
+    sigma = 0.00001
+    thresh_certainty = 0.75 # Threshold for how "certain" the src algorithm should be when predicting the class.
                            # Certainty in the prediction that falls below this threshold is discarded
                            # Increasing this value will lead to stricter predictions. Put zero for no threshold
 
     print(f"Running SRC classifier with certainty threshold: {thresh_certainty}, and feature selection: {options['feature_selection']}")
 
-    accuracy, failed = src_algorithm(TrainSet, TestSet, num_classes, num_test_samples, sigma, thresh_certainty)
+    rec_rate, failed = src_algorithm(TrainSet, TestSet, num_classes, num_test_samples, sigma, thresh_certainty)
     print("Failed to classify images: \n")
     for f in failed:
         print(f)

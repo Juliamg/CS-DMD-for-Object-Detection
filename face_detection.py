@@ -14,12 +14,15 @@ padding = 5
 IGNORE_FILES = ['.DS_Store']
 
 def process_DMD_snapshots(data_path): # Path to train folder residing in Data folder
+    breakpoint()
     face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
     data_folders = os.listdir(data_path)
+
     for folder in data_folders:
         if folder in IGNORE_FILES:
             continue
         face_count = 0
+        max_samples = 0
         for file in os.listdir(data_path + os.sep + folder):
             img_path = data_path + os.sep + folder + os.sep + file
             img = cv2.imread(img_path)
@@ -29,14 +32,23 @@ def process_DMD_snapshots(data_path): # Path to train folder residing in Data fo
             if len(faces) == 0:
                 os.remove(img_path) # No face detected - delete snapshot
 
+            if max_samples >= 9:
+                try:
+                    os.remove(img_path)
+                except:
+                    pass
+                continue
+
             # Check if faces contain a face
             for (x,y,w,h) in faces:
                 face_count += 1
+                max_samples += 1
 
                 ### Crop face and create new image ###
                 crop_img = img[y:y+h+padding, x:x+w+padding]
                 resized_img = cv2.resize(crop_img, shape, interpolation=cv2.INTER_AREA)
                 cv2.imwrite(img_path, resized_img)
                 break # First detected face is probably the correct one
+
 
         print(f"Detected {face_count} faces for subject {folder}")
