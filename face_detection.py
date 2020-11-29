@@ -14,7 +14,6 @@ padding = 5
 IGNORE_FILES = ['.DS_Store']
 
 def process_DMD_snapshots(data_path): # Path to train folder residing in Data folder
-    breakpoint()
     face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
     data_folders = os.listdir(data_path)
 
@@ -32,7 +31,7 @@ def process_DMD_snapshots(data_path): # Path to train folder residing in Data fo
             if len(faces) == 0:
                 os.remove(img_path) # No face detected - delete snapshot
 
-            if max_samples >= 9:
+            if max_samples >= 11:
                 try:
                     os.remove(img_path)
                 except:

@@ -241,8 +241,8 @@ def main(args=None):
         test_path = os.path.join(dest, 'test') + os.sep
 
     ### Feature selection option ###
-    #options = {'feature_selection': 'downsampling', 'dims': shape} # feature selection can be wither pca (eigenfaces) or downsampling
-    options = {'feature_selection': 'pca', 'dims': 18}
+    options = {'feature_selection': 'downsampling', 'dims': shape} # feature selection can be wither pca (eigenfaces) or downsampling
+    #options = {'feature_selection': 'pca', 'dims': 18}
 
     TrainSet, TestSet = prep_train_test(train_path, test_path, options)
 
@@ -250,7 +250,8 @@ def main(args=None):
     num_classes = len(set(TrainSet['y']))
     num_test_samples = len(list(TestSet['y']))
     sigma = 0.00001
-    thresh_certainty = 0.75 # Threshold for how "certain" the src algorithm should be when predicting the class.
+    thresh_certainty = 0.3
+    #thresh_certainty = 0.8 # Threshold for how "certain" the src algorithm should be when predicting the class.
                            # Certainty in the prediction that falls below this threshold is discarded
                            # Increasing this value will lead to stricter predictions. Put zero for no threshold
 
