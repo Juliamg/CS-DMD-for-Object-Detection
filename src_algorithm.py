@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import imageio
+import time
 import sys
 import cv2
 import cvxpy as cvx
@@ -8,6 +9,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 def src_algorithm(TrainSet, TestSet, num_classes, num_test_samples, sigma, thresh_certainty):
+    print("SRC start")
+    time.sleep(3)
     classes = np.unique(TrainSet['y']) # which classes have been acquainted
     identity = []
     failed_imgs = []
@@ -51,15 +54,15 @@ def src_algorithm(TrainSet, TestSet, num_classes, num_test_samples, sigma, thres
             print("RECOGNIZED AS: ", classes[label_index], "TRUE: ", TestSet['y'][i])
             identity.append(classes[label_index])
 
-        graph = sns.barplot(x=classes, y=residuals)
-        plt.title('Residuals of each class')
-        graph.axhline(thresh_certainty, color='r', label='threshold')
-        graph.axhline(certainty, color='g', label='certainty')
-
-        plt.show(block=False)
-        plt.legend()
-        plt.pause(5)
-        plt.close()
+        # graph = sns.barplot(x=classes, y=residuals)
+        # plt.title('Residuals of each class')
+        # graph.axhline(thresh_certainty, color='r', label='threshold')
+        # graph.axhline(certainty, color='g', label='certainty')
+        #
+        # plt.show(block=False)
+        # plt.legend()
+        # plt.pause(5)
+        # plt.close()
 
     ### Calculate accuracy ###
     correct_num = [i for i in range(len(identity)) if identity[i] == TestSet['y'][i]]

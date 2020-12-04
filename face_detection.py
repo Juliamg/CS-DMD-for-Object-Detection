@@ -1,5 +1,6 @@
 import numpy as np
 import os
+import time
 import cv2
 
 """
@@ -14,6 +15,8 @@ padding = 5
 IGNORE_FILES = ['.DS_Store']
 
 def process_DMD_snapshots(data_path): # Path to train folder residing in Data folder
+    print("Running FACEDET")
+    time.sleep(3)
     face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
     data_folders = os.listdir(data_path)
 

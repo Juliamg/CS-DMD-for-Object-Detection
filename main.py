@@ -3,6 +3,7 @@ import os
 import cv2
 import random
 import argparse
+import time
 
 from sklearn.decomposition import PCA
 from skimage.color import rgb2gray
@@ -48,6 +49,7 @@ def prep_train_test(train_path, test_path, options: dict):
 
             if options['feature_selection'] == 'downsampling':
                 X = cv2.resize(X_orig, dims, interpolation = cv2.INTER_AREA)
+
             else:
                 X = X_orig
 
@@ -194,7 +196,7 @@ def run_extract_pipeline(videos_folder, dest_folder, train: bool):
 
     else:
         data_path = parse_videos(videos_folder, dest_folder, train_folder=False) # To test existing database of faces against a recorded video
-        process_DMD_snapshots(data_path)                                          # that was not in training
+        process_DMD_snapshots(data_path)
 
     return data_path
 
@@ -208,12 +210,14 @@ def get_parser():
     return parser
 
 def main(args=None):
-
     """
 
     Main entrypoint
 
     """
+
+    print("PID main: ", os.getpid())
+    time.sleep(3)
 
     parser = get_parser()
     args = parser.parse_args(args)
